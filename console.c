@@ -187,11 +187,12 @@ struct {
 } input;
 
 #define C(x)  ((x)-'@')  // Control-x
+extern void printHello(void);
 
 void
 consoleintr(int (*getc)(void))
 {
-  int c, doprocdump = 0;
+  int c, doprocdump = 0, doPrinthello = 0;
 
   acquire(&cons.lock);
   while((c = getc()) >= 0){
@@ -199,6 +200,9 @@ consoleintr(int (*getc)(void))
     case C('P'):  // Process listing.
       // procdump() locks cons.lock indirectly; invoke later
       doprocdump = 1;
+      break;
+    case C('C'):
+      doPrinthello = 1;
       break;
     case C('U'):  // Kill line.
       while(input.e != input.w &&
@@ -229,6 +233,9 @@ consoleintr(int (*getc)(void))
   release(&cons.lock);
   if(doprocdump) {
     procdump();  // now call procdump() wo. cons.lock held
+  }
+  if(doPrinthello){
+    printHello();
   }
 }
 
@@ -298,3 +305,6 @@ consoleinit(void)
   ioapicenable(IRQ_KBD, 0);
 }
 
+void printHello(void){
+  cprintf("Hello World");
+}
