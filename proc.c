@@ -560,3 +560,11 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+void killproc(void){
+  if(!myproc()){
+    return;
+  }
+  kill(myproc()->pid);
+  cprintf("Process terminated. \n");
+}
