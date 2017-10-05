@@ -7,8 +7,10 @@
 
 #define NUM_PHIL 5
 #define NUM_FORK 5
-
+#define NUM_CHAIR NUM_FORK/2
 sem_t forks[NUM_FORK];
+sem_t chairs;
+
 int getRand(double max) {
   return 1+max*rand()/RAND_MAX;
 }
@@ -27,14 +29,9 @@ void *phil_life(void *threadid) {
     tid = (long)threadid;
     printf("I am philosopher #%ld and I am thinking.\n", tid);
     thinking();
-    if(tid%2){
-      sem_wait(&forks[tid]);
-      sem_wait(&forks[(tid+1)%NUM_PHIL]);
-    }
-    else{
-      sem_wait(&forks[(tid+1)%NUM_PHIL]);
-      sem_wait(&forks[tid]);
-    }
+    sem_wait(&chairs);
+    sem_wait(&forks[tid]);
+    sem_wait(&forks[(tid+1)%NUM_PHIL]);
     printf("I am philosopher #%ld and I am eating.\n", tid);
     eating();
     sem_post(&forks[tid]);
@@ -49,8 +46,9 @@ int main (int argc, char *argv[])
   long t;
   srand(time(NULL));
 
+  sem_init(&chairs, 0, NUM_CHAIR);
   for(t=0; t<NUM_FORK; t++)
-    sem_init(&forks[t], 1, 1);
+    sem_init(&forks[t], 0, 1);
 
   for(t=0; t<NUM_PHIL; t++){
     rc = pthread_create(&philosophers[t], NULL, phil_life, (void *)t);
