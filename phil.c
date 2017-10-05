@@ -1,67 +1,65 @@
 #include <pthread.h>
- #include <stdio.h>
- #include <unistd.h>
- #include <stdlib.h>
- #include <semaphore.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <semaphore.h>
+#include <stdlib.h>
+#include <time.h>
 
- #define NUM_PHIL     5
- #define NUM_FORK     5
+#define NUM_PHIL 5
+#define NUM_FORK 5
 
+sem_t forks[NUM_FORK];
+int getRand(double max) {
+  return 1+max*rand()/RAND_MAX;
+}
 
- sem_t forks[NUM_FORK];
- int getRand(float max) {
+void eating(void) {
+  sleep(getRand(5.0));
+}
 
-   return 1 + (rand() * max) / RAND_MAX;
- }
+void thinking(void) {
+  sleep(getRand(5.0));
+}
 
- void eating(void){
-    sleep(getRand(5.0));
- }
-
- void thinking(void){
-    sleep(getRand(5.0));
- }
-
- void *philLive(void *threadid){
-   long tid;
-   tid =(long)threadid;
-   while(1){
-     printf("i am phil %ld, thinking \n", tid);
-     thinking();
-     if (tid % 2 == 0){
-       sem_wait(&forks[tid]);
-       sem_wait(&forks[(tid+1) % NUM_PHIL]);
-     }else{
-
-     sem_wait(&forks[(tid+1) % NUM_PHIL]);
+void *phil_life(void *threadid) {
+  while(1) {
+    long tid;
+    tid = (long)threadid;
+    printf("I am philosopher #%ld and I am thinking.\n", tid);
+    thinking();
+    if(tid%2){
       sem_wait(&forks[tid]);
-   }
-      printf("i am phil %ld, eating \n", tid);
-
-     eating();
-     sem_post(&forks[tid]);
-     sem_post(&forks[(tid+1) % NUM_PHIL]);
-   }
- }
-
- int main (int argc, char *argv[])
- {
-    pthread_t philosophers[NUM_PHIL];
-    int rc;
-    long t;
-    srand(time(NULL));
-    for(t=0; t<NUM_FORK; t++){
-      sem_init(&forks[t],0,1);
+      sem_wait(&forks[(tid+1)%NUM_PHIL]);
     }
-    for(t=0; t<NUM_PHIL; t++){
-       printf("In main: creating thread %ld\n", t);
-       rc = pthread_create(&philosophers[t], NULL, philLive, (void *)t);
-       if (rc){
-          printf("ERROR; return code from pthread_create() is %d\n", rc);
-          exit(-1);
-       }
+    else{
+      sem_wait(&forks[(tid+1)%NUM_PHIL]);
+      sem_wait(&forks[tid]);
     }
+    printf("I am philosopher #%ld and I am eating.\n", tid);
+    eating();
+    sem_post(&forks[tid]);
+    sem_post(&forks[(tid+1)%NUM_PHIL]);
+  }
+}
 
-    /* Last thing that main() should do */
-    pthread_exit(NULL);
- }
+int main (int argc, char *argv[])
+{
+  pthread_t philosophers[NUM_PHIL];
+  int rc;
+  long t;
+  srand(time(NULL));
+
+  for(t=0; t<NUM_FORK; t++)
+    sem_init(&forks[t], 1, 1);
+
+  for(t=0; t<NUM_PHIL; t++){
+    rc = pthread_create(&philosophers[t], NULL, phil_life, (void *)t);
+    if (rc){
+      printf("ERROR; return code from pthread_create() is %d\n", rc);
+      return -1;
+    }
+  }
+
+  /* Last thing that main() should do */
+  pthread_exit(NULL);
+}
