@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "stdio.h"
 
 struct {
   struct spinlock lock;
@@ -147,6 +148,11 @@ userinit(void)
   // run this process. the acquire forces the above
   // writes to be visible, and the lock is also needed
   // because the assignment might not be atomic.
+  int i = 0;
+  while(i < 4){
+    p->signals[i] = NULL;
+    i += 1;
+  }
   acquire(&ptable.lock);
 
   p->state = RUNNABLE;
@@ -567,4 +573,30 @@ void killproc(void){
   }
   kill(myproc()->pid);
   cprintf("Process terminated. \n");
+}
+
+//run the signal function
+int sys_killsignal(void) {
+ int pid;
+ int signum;
+ struct proc *p;
+ if(argint(0, &pid) < 0) return -1;
+   if(argint(1, &signum) < 0) return -1;
+ if(signum > 4 || signum < 1) return -1;
+ //Try to find the process with the matching pid.
+ for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+        if(p->pid == pid) break;
+
+   //If the pid is not found finish
+   if(p->pid != pid) return -1;
+
+   //Default option finish the process
+   signum -=1;
+   if((int)p->signals[signum] == -1) kill(p->pid);
+ //Else execute the function
+ //Move the stack to the next position
+ p->tf->esp -= 4;
+ //Point to the function
+ p->tf->eip = (uint)p->signals[signum];
+ return 1;
 }
