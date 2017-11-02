@@ -46,3 +46,4 @@ int atoi(const char*);
 int getppid(void);
 int signal(int, sighandler_t);
 int killsignal(int, int);
+int chmod(char*, char*);
