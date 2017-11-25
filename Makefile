@@ -11,7 +11,8 @@ OBJS = \
 	lapic.o\
 	log.o\
 	main.o\
-	mp.o\
+	mem.o\
+        mp.o\
 	picirq.o\
 	pipe.o\
 	proc.o\
@@ -28,7 +29,6 @@ OBJS = \
 	uart.o\
 	vectors.o\
 	vm.o\
-	mem.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -161,31 +161,32 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	_cat\
-	_echo\
-	_forktest\
-	_grep\
-	_init\
-	_kill\
-	_ln\
-	_ls\
-	_mkdir\
-	_rm\
-	_sh\
-	_stressfs\
-	_usertests\
-	_wc\
-	_zombie\
-	_shutdown\
-	_reboot\
-	_fibo\
-	_shmtest\
-	_test_signal\
-	_rename\
-	_cp\
-	_chmod\
-	_login\
-	
+_cat\
+_echo\
+_forktest\
+_grep\
+_init\
+_kill\
+_ln\
+_ls\
+_mkdir\
+_rm\
+_sh\
+_stressfs\
+_usertests\
+_wc\
+_zombie\
+_shutdown\
+_reboot\
+_fibo\
+_shmtest\
+_test_signal\
+_rename\
+_cp\
+_chmod\
+_login\
+_useradd\
+
 fs.img: mkfs README passwd $(UPROGS)
 	./mkfs fs.img README passwd $(UPROGS)
 
